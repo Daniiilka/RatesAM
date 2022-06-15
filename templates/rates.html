@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="{% url 'rates:result' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+    <input type="number" name="rub_input" id="rub">
+    <label for="rub">RUB</label>
+    </fieldset>
+    <input type="submit" value="Подтвердить">
+</form>
+
+
+
+</body>
+</html>
