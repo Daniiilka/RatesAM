@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 
 def calc(rub):
-    currency = models.Currency.objects.get(pk=1)
+    currency = models.Currency.objects.latest('last_update')
     rates = {
         "rub_usd_uni": currency.rub_usd_uni,
         "rub_eur_uni": currency.rub_eur_uni,

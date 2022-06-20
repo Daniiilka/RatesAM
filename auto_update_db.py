@@ -1,27 +1,15 @@
 import datetime
 
+import psycopg2
+
 import requests
 from datetime import datetime
 
 from dotenv import dotenv_values
-from peewee import *
 from bs4 import BeautifulSoup
+
+
 config = dotenv_values(".env")
-
-db = PostgresqlDatabase(database='ratesAM', user=config['DB_USER'],
-                        password=config['DB_PASSWORD'])
-
-
-class Rates_Currency(Model):
-    rub_usd_uni = FloatField(default=None)
-    rub_eur_uni = FloatField(default=None)
-    rub_amd_uni = FloatField(default=None)
-    usd_amd_sas = FloatField(default=None)
-    eur_amd_sas = FloatField(default=None)
-    last_update = TimeField(default=None)
-
-    class Meta:
-        database = db
 
 
 def get_data_from_sas():
@@ -52,19 +40,22 @@ def link(currency):
 
 
 def update_db():
-    now = datetime.now()
-
-    current_time = now.strftime("%H:%M:%S")
     data_from_sas = get_data_from_sas()
     usd_amd = data_from_sas[0]
     eur_amd = data_from_sas[1]
-    Rates_Currency.create(rub_usd_uni=link('USD'),
-                          rub_eur_uni=link('EUR'),
-                          rub_amd_uni=link('AMD'),
-                          usd_amd_sas=usd_amd,
-                          eur_amd_sas=eur_amd,
-                          last_update=current_time)
-
+    conn = psycopg2.connect(dbname='ratesAM', user=config['DB_USER'],
+                            password=config['DB_PASSWORD'],
+                            host=config['DB_HOST'],
+                            )
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO rates_currency (rub_usd_uni, rub_eur_uni, '
+                   'rub_amd_uni, usd_amd_sas, eur_amd_sas, last_update) '
+                   'VALUES (%s, %s, %s, %s, %s, %s)', (link('USD'),
+                                                       link('EUR'),link('AMD'),
+                                                       usd_amd, eur_amd, datetime.now()))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 if __name__ == '__main__':
